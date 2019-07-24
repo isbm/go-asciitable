@@ -20,7 +20,6 @@ type simpleTable struct {
 	rowsCount   uint64
 	headerAlign int
 	cellAlign   int
-	border      byte
 	style       borderStyle
 }
 

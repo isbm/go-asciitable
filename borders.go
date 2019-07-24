@@ -86,7 +86,7 @@ func NewBorderStyle(outer int, inner int) *borderStyle {
 			style.inner.VERTICAL_LINE = "\u2502"
 		}
 	default:
-		// Plain single ascii
+		// Just a plug ugly ascii style
 		style.outer.LEFT_TOP = "+"
 		style.outer.LEFT_BOTTOM = "+"
 		style.outer.RIGHT_TOP = "+"
