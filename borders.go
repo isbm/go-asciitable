@@ -59,6 +59,32 @@ func NewBorderStyle(outer int, inner int) *borderStyle {
 			style.inner.HORISONTAL_LINE = "\u2500"
 			style.inner.VERTICAL_LINE = "\u2502"
 		}
+	case BORDER_SINGLE_THICK:
+		style.outer.LEFT_TOP = "\u250f"
+		style.outer.LEFT_BOTTOM = "\u2517"
+		style.outer.RIGHT_TOP = "\u2513"
+		style.outer.RIGHT_BOTTOM = "\u251b"
+		style.outer.HORISONTAL_LINE = "\u2501"
+		style.outer.VERTICAL_LINE = "\u2503"
+
+		switch inner {
+		case BORDER_SINGLE_THICK:
+			style.inner.CENTER_TOP = "\u2533"
+			style.inner.CENTER_BOTTOM = "\u253b"
+			style.inner.CENTER_MIDDLE = "\u254b"
+			style.inner.LEFT_MIDDLE = "\u2523"
+			style.inner.RIGHT_MIDDLE = "\u252b"
+			style.inner.HORISONTAL_LINE = "\u2501"
+			style.inner.VERTICAL_LINE = "\u2503"
+		case BORDER_SINGLE_THIN:
+			style.inner.CENTER_TOP = "\u252f"
+			style.inner.CENTER_BOTTOM = "\u2537"
+			style.inner.CENTER_MIDDLE = "\u253c"
+			style.inner.LEFT_MIDDLE = "\u2520"
+			style.inner.RIGHT_MIDDLE = "\u2528"
+			style.inner.HORISONTAL_LINE = "\u2500"
+			style.inner.VERTICAL_LINE = "\u2502"
+		}
 	default:
 		// Plain single ascii
 		style.outer.LEFT_TOP = "+"
