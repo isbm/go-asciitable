@@ -27,13 +27,16 @@ type simpleTable struct {
 /*
 NewSimpleTable object constructor
 */
-func NewSimpleTable() *simpleTable {
+func NewSimpleTable(style *borderStyle) *simpleTable {
 	table := new(simpleTable)
 	table.rowsData = make([][]string, 0)
 	table.rowsCount = 0
 	table.headerAlign = ALIGN_LEFT
 	table.cellAlign = ALIGN_LEFT
-	table.style = *NewBorderStyle(-1, -1) // ascii style
+	if style == nil {
+		style = NewBorderStyle(-1, -1)
+	}
+	table.style = *style
 
 	return table
 }
@@ -121,24 +124,30 @@ func (table *simpleTable) renderBorder(borderType int) string {
 		border = table.style.outer.LeftTop()
 		for idx, width := range rowWidths {
 			border += strings.Repeat(table.style.outer.HorisontalLine(), width)
-			if idx < width-1 {
+			if idx < len(rowWidths)-1 {
+				border += table.style.inner.CenterTop()
+			} else {
 				border += table.style.outer.RightTop()
 			}
 		}
 	case _borderBottom:
-		border = table.style.outer.LeftTop()
+		border = table.style.outer.LeftBottom()
 		for idx, width := range rowWidths {
 			border += strings.Repeat(table.style.outer.HorisontalLine(), width)
-			if idx < width-1 {
-				border += table.style.outer.RightTop()
+			if idx < len(rowWidths)-1 {
+				border += table.style.inner.CenterBottom()
+			} else {
+				border += table.style.outer.RightBottom()
 			}
 		}
 	case _borderInner:
-		border = table.style.outer.LeftTop()
+		border = table.style.inner.LeftMiddle()
 		for idx, width := range rowWidths {
-			border += strings.Repeat(table.style.outer.HorisontalLine(), width)
-			if idx < width-1 {
-				border += table.style.outer.RightTop()
+			border += strings.Repeat(table.style.inner.HorisontalLine(), width)
+			if idx < len(rowWidths)-1 {
+				border += table.style.inner.CenterMiddle()
+			} else {
+				border += table.style.inner.RightMiddle()
 			}
 		}
 	}
@@ -151,10 +160,10 @@ func (table *simpleTable) renderRow(cells []string) string {
 	var row string
 	for idx, cell := range cells {
 		if idx < 1 {
-			row += table.style.inner.HorisontalLine()
+			row += table.style.inner.VerticalLine()
 		}
 		row += table.renderCell(cell, rowWidths[idx], idx == 0)
-		row += "|"
+		row += table.style.inner.VerticalLine()
 	}
 	return row
 }
@@ -171,12 +180,16 @@ func (table *simpleTable) Render() string {
 		}...)
 	}
 
-	for _, row := range table.rowsData {
+	for _, row := range table.rowsData[:len(table.rowsData)-1] {
 		render = append(render, []string{
 			table.renderRow(row),
 			table.renderBorder(_borderInner),
 		}...)
 	}
+	render = append(render, []string{
+		table.renderRow(table.rowsData[len(table.rowsData)-1]),
+		table.renderBorder(_borderBottom),
+	}...)
 
 	return strings.Join(render, "\n")
 }
