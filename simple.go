@@ -160,10 +160,14 @@ func (table *simpleTable) renderRow(cells []string) string {
 	var row string
 	for idx, cell := range cells {
 		if idx < 1 {
-			row += table.style.inner.VerticalLine()
+			row += table.style.outer.VerticalLine()
 		}
 		row += table.renderCell(cell, rowWidths[idx], idx == 0)
-		row += table.style.inner.VerticalLine()
+		if idx < len(cells)-1 {
+			row += table.style.inner.VerticalLine()
+		} else {
+			row += table.style.outer.VerticalLine()
+		}
 	}
 	return row
 }
