@@ -13,18 +13,6 @@ const (
 	_borderBottom
 )
 
-// Configuration of the table.
-const (
-	ALIGN_LEFT = iota
-	ALIGN_CENTER
-	ALIGN_RIGHT
-	BORDER_SINGLE
-	BORDER_DOUBLE
-	BORDER_NONE
-	BORDER_OUTER
-	BORDER_INNER
-)
-
 // Table object
 type simpleTable struct {
 	header      []string
@@ -33,6 +21,7 @@ type simpleTable struct {
 	headerAlign int
 	cellAlign   int
 	border      byte
+	style       borderStyle
 }
 
 /*
@@ -44,8 +33,7 @@ func NewSimpleTable() *simpleTable {
 	table.rowsCount = 0
 	table.headerAlign = ALIGN_LEFT
 	table.cellAlign = ALIGN_LEFT
-	table.border = BORDER_SINGLE | BORDER_INNER | BORDER_OUTER
-	// https://medium.com/learning-the-go-programming-language/bit-hacking-with-go-e0acee258827
+	table.style = *NewBorderStyle(-1, -1) // ascii style
 
 	return table
 }
@@ -130,27 +118,27 @@ func (table *simpleTable) renderBorder(borderType int) string {
 	var border string
 	switch borderType {
 	case _borderTop:
-		border = "+"
+		border = table.style.outer.LeftTop()
 		for idx, width := range rowWidths {
-			border += strings.Repeat("-", width)
+			border += strings.Repeat(table.style.outer.HorisontalLine(), width)
 			if idx < width-1 {
-				border += "+"
+				border += table.style.outer.RightTop()
 			}
 		}
 	case _borderBottom:
-		border = "+"
+		border = table.style.outer.LeftTop()
 		for idx, width := range rowWidths {
-			border += strings.Repeat("-", width)
+			border += strings.Repeat(table.style.outer.HorisontalLine(), width)
 			if idx < width-1 {
-				border += "+"
+				border += table.style.outer.RightTop()
 			}
 		}
 	case _borderInner:
-		border = "+"
+		border = table.style.outer.LeftTop()
 		for idx, width := range rowWidths {
-			border += strings.Repeat("-", width)
+			border += strings.Repeat(table.style.outer.HorisontalLine(), width)
 			if idx < width-1 {
-				border += "+"
+				border += table.style.outer.RightTop()
 			}
 		}
 	}
@@ -163,7 +151,7 @@ func (table *simpleTable) renderRow(cells []string) string {
 	var row string
 	for idx, cell := range cells {
 		if idx < 1 {
-			row += "|"
+			row += table.style.inner.HorisontalLine()
 		}
 		row += table.renderCell(cell, rowWidths[idx], idx == 0)
 		row += "|"
