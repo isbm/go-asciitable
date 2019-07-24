@@ -11,6 +11,7 @@ table.Header("Name", "Description")
 table.AddRow("Strawberry", "Fruit in yours granma's garten")
 table.AddRow("Raspberry", "Useless hardware you anyway will buy")
 table.AddRow("Perl", "Also language")
+fmt.Println(table.Render())
 ```
 
 Result:
