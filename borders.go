@@ -7,6 +7,7 @@ type borderOuter struct {
 	LEFT_BOTTOM     string
 	RIGHT_TOP       string
 	RIGHT_BOTTOM    string
+	IS_VISIBLE      bool
 }
 
 type borderInner struct {
@@ -17,6 +18,11 @@ type borderInner struct {
 	CENTER_BOTTOM   string
 	CENTER_MIDDLE   string
 	RIGHT_MIDDLE    string
+	HEADER_LEFT     string
+	HEADER_MIDDLE   string
+	HEADER_RIGHT    string
+	HEADER          string
+	IS_VISIBLE      bool
 }
 
 type borderStyle struct {
@@ -35,10 +41,14 @@ const (
 	BORDER_NONE
 )
 
-func NewBorderStyle(outer int, inner int) *borderStyle {
+func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) *borderStyle {
 	style := new(borderStyle)
+
 	style.outer = *new(borderOuter)
+	style.outer.IS_VISIBLE = true
+
 	style.inner = *new(borderInner)
+	style.inner.IS_VISIBLE = true
 
 	switch outer {
 	case BORDER_SINGLE_THIN:
@@ -48,9 +58,24 @@ func NewBorderStyle(outer int, inner int) *borderStyle {
 		style.outer.RIGHT_BOTTOM = "\u2518"
 		style.outer.HORISONTAL_LINE = "\u2500"
 		style.outer.VERTICAL_LINE = "\u2502"
-
 		switch inner {
-		case BORDER_SINGLE_THIN:
+		case BORDER_SINGLE_THICK:
+			style.inner.CENTER_TOP = "\u2530"
+			style.inner.CENTER_BOTTOM = "\u2538"
+			style.inner.CENTER_MIDDLE = "\u254b"
+			style.inner.LEFT_MIDDLE = "\u251d"
+			style.inner.RIGHT_MIDDLE = "\u2525"
+			style.inner.HORISONTAL_LINE = "\u2501"
+			style.inner.VERTICAL_LINE = "\u2503"
+		case BORDER_DOUBLE:
+			style.inner.CENTER_TOP = "\u2565"
+			style.inner.CENTER_BOTTOM = "\u2568"
+			style.inner.CENTER_MIDDLE = "\u256c"
+			style.inner.LEFT_MIDDLE = "\u255e"
+			style.inner.RIGHT_MIDDLE = "\u2561"
+			style.inner.HORISONTAL_LINE = "\u2550"
+			style.inner.VERTICAL_LINE = "\u2551"
+		default: // Thin border
 			style.inner.CENTER_TOP = "\u252c"
 			style.inner.CENTER_BOTTOM = "\u2534"
 			style.inner.CENTER_MIDDLE = "\u253c"
@@ -76,12 +101,38 @@ func NewBorderStyle(outer int, inner int) *borderStyle {
 			style.inner.RIGHT_MIDDLE = "\u252b"
 			style.inner.HORISONTAL_LINE = "\u2501"
 			style.inner.VERTICAL_LINE = "\u2503"
-		case BORDER_SINGLE_THIN:
+		default: // Thin border, no double here
 			style.inner.CENTER_TOP = "\u252f"
 			style.inner.CENTER_BOTTOM = "\u2537"
 			style.inner.CENTER_MIDDLE = "\u253c"
 			style.inner.LEFT_MIDDLE = "\u2520"
 			style.inner.RIGHT_MIDDLE = "\u2528"
+			style.inner.HORISONTAL_LINE = "\u2500"
+			style.inner.VERTICAL_LINE = "\u2502"
+		}
+	case BORDER_DOUBLE:
+		style.outer.LEFT_TOP = "\u2554"
+		style.outer.LEFT_BOTTOM = "\u255a"
+		style.outer.RIGHT_TOP = "\u2557"
+		style.outer.RIGHT_BOTTOM = "\u255d"
+		style.outer.HORISONTAL_LINE = "\u2550"
+		style.outer.VERTICAL_LINE = "\u2551"
+
+		switch inner {
+		case BORDER_DOUBLE:
+			style.inner.CENTER_TOP = "\u2566"
+			style.inner.CENTER_BOTTOM = "\u2569"
+			style.inner.CENTER_MIDDLE = "\u256c"
+			style.inner.LEFT_MIDDLE = "\u2560"
+			style.inner.RIGHT_MIDDLE = "\u2563"
+			style.inner.HORISONTAL_LINE = "\u2550"
+			style.inner.VERTICAL_LINE = "\u2551"
+		default: // Thin border, no thick here
+			style.inner.CENTER_TOP = "\u2564"
+			style.inner.CENTER_BOTTOM = "\u2567"
+			style.inner.CENTER_MIDDLE = "\u253c"
+			style.inner.LEFT_MIDDLE = "\u255f"
+			style.inner.RIGHT_MIDDLE = "\u2562"
 			style.inner.HORISONTAL_LINE = "\u2500"
 			style.inner.VERTICAL_LINE = "\u2502"
 		}
@@ -100,6 +151,14 @@ func NewBorderStyle(outer int, inner int) *borderStyle {
 		style.inner.RIGHT_MIDDLE = "+"
 		style.inner.HORISONTAL_LINE = "-"
 		style.inner.VERTICAL_LINE = "|"
+	}
+
+	style.outer.IS_VISIBLE = outerVisible
+	style.inner.IS_VISIBLE = innerVisible
+	if !outerVisible {
+		style.outer.LEFT_TOP, style.outer.LEFT_BOTTOM, style.outer.RIGHT_TOP, style.outer.RIGHT_BOTTOM,
+			style.outer.HORISONTAL_LINE, style.outer.VERTICAL_LINE = "", "", "", "", "", ""
+		style.inner.LEFT_MIDDLE, style.inner.RIGHT_MIDDLE, style.inner.CENTER_TOP, style.inner.CENTER_BOTTOM = "", "", "", ""
 	}
 
 	return style
@@ -156,4 +215,20 @@ func (border *borderInner) HorisontalLine() string {
 }
 func (border *borderInner) VerticalLine() string {
 	return border.VERTICAL_LINE
+}
+
+func (border *borderInner) Header() string {
+	return border.HEADER
+}
+
+func (border *borderInner) HeaderLeft() string {
+	return border.HEADER_LEFT
+}
+
+func (border *borderInner) HeaderMiddle() string {
+	return border.HEADER_MIDDLE
+}
+
+func (border *borderInner) HeaderRight() string {
+	return border.HEADER_RIGHT
 }
