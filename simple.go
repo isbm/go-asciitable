@@ -22,6 +22,7 @@ type simpleTable struct {
 	cellAlign   int
 	style       borderStyle
 	widthTable  int
+	padding     int
 }
 
 /*
@@ -41,7 +42,14 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	}
 	table.style = *style
 	table.widthTable, _ = getTerminalSize()
+	table.padding = 0
 
+	return table
+}
+
+// Set cell padding
+func (table *simpleTable) SetCellPadding(width int) *simpleTable {
+	table.padding = width
 	return table
 }
 
@@ -84,14 +92,14 @@ func (table *simpleTable) getRowWidths() []int {
 
 	for idx, title := range table.header {
 		if len(title) > widths[idx] {
-			widths[idx] = len(title)
+			widths[idx] = len(title) + table.padding*2
 		}
 	}
 
 	for _, rData := range table.rowsData.data {
 		for idx, data := range rData {
 			if len(data) > widths[idx] {
-				widths[idx] = len(data)
+				widths[idx] = len(data) + table.padding*2
 			}
 		}
 	}
@@ -112,7 +120,7 @@ func (table *simpleTable) getRowWidths() []int {
 	} else {
 		lastColWidth := table.widthTable - (sum - widths[len(widths)-1])
 		if lastColWidth < 4 {
-			lastColWidth = 4
+			lastColWidth = 4 + table.padding*2
 		}
 		widths[len(widths)-1] = lastColWidth
 	}
@@ -123,8 +131,11 @@ func (table *simpleTable) getRowWidths() []int {
 func (table *simpleTable) renderCell(data string, width int, first bool) string {
 	// Trim data, if width is smaller
 	if len(data) > width {
-		data = data[:width-3] + "..."
+		data = data[:width-3-(table.padding*2)] + "..."
 	}
+
+	// Set padding
+	data = strings.Repeat(" ", table.padding) + data + strings.Repeat(" ", table.padding)
 
 	w := strconv.Itoa(width)
 	var cell string
