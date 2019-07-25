@@ -8,6 +8,7 @@ type borderOuter struct {
 	RIGHT_TOP       string
 	RIGHT_BOTTOM    string
 	IS_VISIBLE      bool
+	style           int
 }
 
 type borderInner struct {
@@ -23,6 +24,7 @@ type borderInner struct {
 	HEADER_RIGHT    string
 	HEADER          string
 	IS_VISIBLE      bool
+	style           int
 }
 
 type borderStyle struct {
@@ -46,9 +48,11 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 
 	style.outer = *new(borderOuter)
 	style.outer.IS_VISIBLE = true
+	style.outer.style = outer
 
 	style.inner = *new(borderInner)
 	style.inner.IS_VISIBLE = true
+	style.inner.style = inner
 
 	switch outer {
 	case BORDER_SINGLE_THIN:
@@ -173,6 +177,87 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 		style.inner.RIGHT_MIDDLE = ""
 	}
 
+	return style
+}
+
+// Set header style. This will draw a specified style line under the header.
+func (style *borderStyle) HeaderStyle(header int) *borderStyle {
+	switch header {
+	case BORDER_SINGLE_THIN:
+		if style.inner.IS_VISIBLE {
+			switch style.inner.style {
+			case BORDER_SINGLE_THIN:
+				style.inner.HEADER = "\u2500"
+				style.inner.HEADER_MIDDLE = "\u253c"
+				switch style.outer.style {
+				case BORDER_SINGLE_THIN:
+					style.inner.HEADER_LEFT = "\u251c"
+					style.inner.HEADER_RIGHT = "\u2524"
+				case BORDER_SINGLE_THICK:
+					style.inner.HEADER_LEFT = "\u2520"
+					style.inner.HEADER_RIGHT = "\u2528"
+				case BORDER_DOUBLE:
+					style.inner.HEADER_LEFT = "\u255f"
+					style.inner.HEADER_RIGHT = "\u2562"
+				}
+			}
+		} else {
+			style.inner.HEADER = "\u2500"
+			style.inner.HEADER_LEFT = "\u2500"
+			style.inner.HEADER_MIDDLE = "\u2500"
+			style.inner.HEADER_RIGHT = "\u2500"
+		}
+	case BORDER_SINGLE_THICK:
+		if style.inner.IS_VISIBLE {
+			switch style.inner.style {
+			case BORDER_SINGLE_THIN:
+				style.inner.HEADER = "\u2500"
+				style.inner.HEADER_MIDDLE = "\u253c"
+				switch style.outer.style {
+				case BORDER_SINGLE_THIN:
+					style.inner.HEADER_LEFT = "\u251c"
+					style.inner.HEADER_RIGHT = "\u2524"
+				case BORDER_SINGLE_THICK:
+					style.inner.HEADER_LEFT = "\u2520"
+					style.inner.HEADER_RIGHT = "\u2528"
+				case BORDER_DOUBLE:
+					style.inner.HEADER_LEFT = "\u255f"
+					style.inner.HEADER_RIGHT = "\u2562"
+				}
+			}
+		} else {
+			style.inner.HEADER = "\u2501"
+			style.inner.HEADER_LEFT = "\u2501"
+			style.inner.HEADER_MIDDLE = "\u2501"
+			style.inner.HEADER_RIGHT = "\u2501"
+		}
+	case BORDER_DOUBLE:
+		if style.inner.IS_VISIBLE {
+			switch style.inner.style {
+			case BORDER_SINGLE_THIN:
+				style.inner.HEADER = "\u2550"
+				style.inner.HEADER_MIDDLE = "\u256a"
+				switch style.outer.style {
+				case BORDER_SINGLE_THIN:
+					style.inner.HEADER_LEFT = "\u255e"
+					style.inner.HEADER_RIGHT = "\u2561"
+				case BORDER_SINGLE_THICK:
+					style.inner.HEADER_LEFT = "\u2503"
+					style.inner.HEADER_MIDDLE = "\u2584"
+					style.inner.HEADER_RIGHT = "\u2503"
+					style.inner.HEADER = "\u2584"
+				case BORDER_DOUBLE:
+					style.inner.HEADER_LEFT = "\u2560"
+					style.inner.HEADER_RIGHT = "\u2563"
+				}
+			}
+		} else {
+			style.inner.HEADER = "\u2550"
+			style.inner.HEADER_LEFT = "\u2550"
+			style.inner.HEADER_MIDDLE = "\u2550"
+			style.inner.HEADER_RIGHT = "\u2550"
+		}
+	}
 	return style
 }
 

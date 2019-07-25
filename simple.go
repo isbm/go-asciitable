@@ -11,6 +11,7 @@ const (
 	_borderTop = iota
 	_borderInner
 	_borderBottom
+	_borderHeader
 )
 
 // Table object
@@ -190,6 +191,16 @@ func (table *simpleTable) renderBorder(borderType int) string {
 				border += table.style.inner.RightMiddle()
 			}
 		}
+	case _borderHeader:
+		border = table.style.inner.HeaderLeft()
+		for idx, width := range rowWidths {
+			border += strings.Repeat(table.style.inner.Header(), width)
+			if idx < len(rowWidths)-1 {
+				border += table.style.inner.HeaderMiddle()
+			} else {
+				border += table.style.inner.HeaderRight()
+			}
+		}
 	}
 	return border
 }
@@ -220,7 +231,7 @@ func (table *simpleTable) Render() string {
 		render = append(render, []string{
 			table.renderBorder(_borderTop),
 			table.renderRow(table.header),
-			table.renderBorder(_borderInner),
+			table.renderBorder(_borderHeader),
 		}...)
 	}
 
