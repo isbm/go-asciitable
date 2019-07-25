@@ -115,6 +115,11 @@ func (table *simpleTable) getRowWidths() []int {
 }
 
 func (table *simpleTable) renderCell(data string, width int, first bool) string {
+	// Trim data, if width is smaller
+	if len(data) > width {
+		data = data[:width-3] + "..."
+	}
+
 	w := strconv.Itoa(width)
 	var cell string
 	switch table.headerAlign {
