@@ -235,5 +235,12 @@ func (table *simpleTable) Render() string {
 		table.renderBorder(_borderBottom),
 	}...)
 
-	return strings.Join(render, "\n")
+	// Filter-out empty renders
+	var rendered strings.Builder
+	for _, chunk := range render {
+		if len(chunk) > 0 {
+			rendered.WriteString("\n" + chunk)
+		}
+	}
+	return rendered.String()
 }

@@ -155,10 +155,22 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 
 	style.outer.IS_VISIBLE = outerVisible
 	style.inner.IS_VISIBLE = innerVisible
-	if !outerVisible {
+
+	if !style.outer.IS_VISIBLE {
 		style.outer.LEFT_TOP, style.outer.LEFT_BOTTOM, style.outer.RIGHT_TOP, style.outer.RIGHT_BOTTOM,
 			style.outer.HORISONTAL_LINE, style.outer.VERTICAL_LINE = "", "", "", "", "", ""
-		style.inner.LEFT_MIDDLE, style.inner.RIGHT_MIDDLE, style.inner.CENTER_TOP, style.inner.CENTER_BOTTOM = "", "", "", ""
+		style.inner.LEFT_MIDDLE, style.inner.RIGHT_MIDDLE, style.inner.CENTER_TOP,
+			style.inner.CENTER_BOTTOM = "", "", "", ""
+	}
+
+	if !style.inner.IS_VISIBLE {
+		style.inner.CENTER_MIDDLE = ""
+		style.inner.CENTER_BOTTOM = ""
+		style.inner.CENTER_TOP = ""
+		style.inner.VERTICAL_LINE = ""
+		style.inner.HORISONTAL_LINE = ""
+		style.inner.LEFT_MIDDLE = ""
+		style.inner.RIGHT_MIDDLE = ""
 	}
 
 	return style
