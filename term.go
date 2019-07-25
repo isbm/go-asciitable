@@ -12,7 +12,7 @@ type termSize struct {
 	Ypixel uint16
 }
 
-func getTerminalWidth() uint {
+func getTerminalSize() (int, int) {
 	size := &termSize{}
 	code, _, err := syscall.Syscall(syscall.SYS_IOCTL,
 		uintptr(syscall.Stdin),
@@ -22,5 +22,5 @@ func getTerminalWidth() uint {
 	if int(code) == -1 {
 		panic(err)
 	}
-	return uint(size.Col)
+	return int(size.Col), int(size.Row)
 }

@@ -40,7 +40,7 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 		style = NewBorderStyle(-1, -1, true, true)
 	}
 	table.style = *style
-	table.widthTable = int(getTerminalWidth())
+	table.widthTable, _ = getTerminalSize()
 
 	return table
 }
