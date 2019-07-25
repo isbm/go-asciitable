@@ -12,7 +12,7 @@ type termSize struct {
 	Ypixel uint16
 }
 
-func getTerminalSize() (int, int) {
+func GetTerminalSize() (int, int) {
 	size := &termSize{}
 	code, _, err := syscall.Syscall(syscall.SYS_IOCTL,
 		uintptr(syscall.Stdin),

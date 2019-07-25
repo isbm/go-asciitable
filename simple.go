@@ -41,7 +41,7 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 		style = NewBorderStyle(-1, -1, true, true)
 	}
 	table.style = *style
-	table.widthTable, _ = getTerminalSize()
+	table.widthTable, _ = GetTerminalSize()
 	table.padding = 0
 
 	return table
