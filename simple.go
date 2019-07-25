@@ -46,6 +46,21 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 }
 
 /*
+Set overall table width (chars)
+*/
+func (table *simpleTable) SetWidth(width int) *simpleTable {
+	table.widthTable = width
+	return table
+}
+
+/*
+Set column width (chars)
+*/
+func (table *simpleTable) SetColWidth(column int, width int) *simpleTable {
+	return table
+}
+
+/*
 Set Header of the table. Each string represents a column name.
 Previous data is wept away.
 */
