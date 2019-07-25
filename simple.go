@@ -96,6 +96,7 @@ func (table *simpleTable) getRowWidths() []int {
 		}
 	}
 
+	// Adjust the last column accordingly
 	sum := 0
 	for _, width := range widths {
 		sum += width
