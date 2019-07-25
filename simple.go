@@ -109,6 +109,12 @@ func (table *simpleTable) getRowWidths() []int {
 			offset = 2
 		}
 		widths[len(widths)-1] = widths[len(widths)-1] + table.widthTable - sum - offset
+	} else {
+		lastColWidth := table.widthTable - (sum - widths[len(widths)-1])
+		if lastColWidth < 4 {
+			lastColWidth = 4
+		}
+		widths[len(widths)-1] = lastColWidth
 	}
 
 	return widths
