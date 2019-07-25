@@ -16,26 +16,31 @@ const (
 // Table object
 type simpleTable struct {
 	header      []string
-	rowsData    [][]string
+	rowsData    *TableData
 	rowsCount   uint64
 	headerAlign int
 	cellAlign   int
 	style       borderStyle
+	widthTable  int
 }
 
 /*
 NewSimpleTable object constructor
 */
-func NewSimpleTable(style *borderStyle) *simpleTable {
+func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table := new(simpleTable)
-	table.rowsData = make([][]string, 0)
+	if data == nil {
+		data = NewTableData()
+	}
+	table.rowsData = data
 	table.rowsCount = 0
 	table.headerAlign = ALIGN_LEFT
 	table.cellAlign = ALIGN_LEFT
 	if style == nil {
-		style = NewBorderStyle(-1, -1)
+		style = NewBorderStyle(-1, -1, true, true)
 	}
 	table.style = *style
+	table.widthTable = int(getTerminalWidth())
 
 	return table
 }
@@ -44,31 +49,15 @@ func NewSimpleTable(style *borderStyle) *simpleTable {
 Set Header of the table. Each string represents a column name.
 Previous data is wept away.
 */
-func (table *simpleTable) Header(titles ...string) {
+func (table *simpleTable) Header(titles ...string) *simpleTable {
 	table.header = make([]string, len(titles))
 	copy(table.header, titles)
+
+	return table
 }
 
-/*
-Add row to the data. Mostly strings... :-)
-*/
-func (table *simpleTable) AddRow(data ...interface{}) {
-	row := make([]string, len(data))
-	for idx, rowData := range data {
-		var cellData string
-		switch rowData.(type) {
-		case int:
-			cellData = fmt.Sprintf("%d", rowData) // Formatting later
-		default:
-			cellData = fmt.Sprintf("%v", rowData)
-		}
-		row[idx] = cellData
-	}
-
-	if len(row) > 0 {
-		table.rowsData = append(table.rowsData, row)
-		table.rowsCount++
-	}
+func (table *simpleTable) Data() *TableData {
+	return table.rowsData
 }
 
 // Calculate row widths for maximum widest data
@@ -84,12 +73,26 @@ func (table *simpleTable) getRowWidths() []int {
 		}
 	}
 
-	for _, rData := range table.rowsData {
+	for _, rData := range table.rowsData.data {
 		for idx, data := range rData {
 			if len(data) > widths[idx] {
 				widths[idx] = len(data)
 			}
 		}
+	}
+
+	sum := 0
+	for _, width := range widths {
+		sum += width
+	}
+	if sum < table.widthTable {
+		var offset int
+		if table.style.outer.IS_VISIBLE {
+			offset = 4
+		} else {
+			offset = 2
+		}
+		widths[len(widths)-1] = widths[len(widths)-1] + table.widthTable - sum - offset
 	}
 
 	return widths
@@ -183,14 +186,14 @@ func (table *simpleTable) Render() string {
 		}...)
 	}
 
-	for _, row := range table.rowsData[:len(table.rowsData)-1] {
+	for _, row := range table.rowsData.data[:len(table.rowsData.data)-1] {
 		render = append(render, []string{
 			table.renderRow(row),
 			table.renderBorder(_borderInner),
 		}...)
 	}
 	render = append(render, []string{
-		table.renderRow(table.rowsData[len(table.rowsData)-1]),
+		table.renderRow(table.rowsData.data[len(table.rowsData.data)-1]),
 		table.renderBorder(_borderBottom),
 	}...)
 
