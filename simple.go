@@ -21,7 +21,7 @@ type simpleTable struct {
 	rowsCount   uint64
 	headerAlign int
 	cellAlign   int
-	style       borderStyle
+	style       *borderStyle
 	widthTable  int
 	padding     int
 }
@@ -39,9 +39,9 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table.headerAlign = ALIGN_LEFT
 	table.cellAlign = ALIGN_LEFT
 	if style == nil {
-		style = NewBorderStyle(-1, -1, true, true)
+		style = NewBorderStyle(-1, -1)
 	}
-	table.style = *style
+	table.style = style
 	table.widthTable, _ = GetTerminalSize()
 	table.padding = 0
 
@@ -192,13 +192,25 @@ func (table *simpleTable) renderBorder(borderType int) string {
 			}
 		}
 	case _borderHeader:
-		border = table.style.inner.HeaderLeft()
-		for idx, width := range rowWidths {
-			border += strings.Repeat(table.style.inner.Header(), width)
-			if idx < len(rowWidths)-1 {
-				border += table.style.inner.HeaderMiddle()
+		if table.style.inner.HEADER_IS_VISIBLE || table.style.inner.IS_VISIBLE {
+			if table.style.outer.IS_VISIBLE {
+				border = table.style.inner.HeaderLeft()
 			} else {
-				border += table.style.inner.HeaderRight()
+				table.style.inner.Header()
+			}
+			for idx, width := range rowWidths {
+				border += strings.Repeat(table.style.inner.Header(), width)
+				if idx < len(rowWidths)-1 {
+					if table.style.inner.IS_VISIBLE {
+						border += table.style.inner.HeaderMiddle()
+					}
+				} else {
+					if table.style.outer.IS_VISIBLE {
+						border = table.style.inner.HeaderRight()
+					} else {
+						table.style.inner.Header()
+					}
+				}
 			}
 		}
 	}

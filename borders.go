@@ -12,19 +12,20 @@ type borderOuter struct {
 }
 
 type borderInner struct {
-	VERTICAL_LINE   string
-	HORISONTAL_LINE string
-	LEFT_MIDDLE     string
-	CENTER_TOP      string
-	CENTER_BOTTOM   string
-	CENTER_MIDDLE   string
-	RIGHT_MIDDLE    string
-	HEADER_LEFT     string
-	HEADER_MIDDLE   string
-	HEADER_RIGHT    string
-	HEADER          string
-	IS_VISIBLE      bool
-	style           int
+	VERTICAL_LINE     string
+	HORISONTAL_LINE   string
+	LEFT_MIDDLE       string
+	CENTER_TOP        string
+	CENTER_BOTTOM     string
+	CENTER_MIDDLE     string
+	RIGHT_MIDDLE      string
+	HEADER_LEFT       string
+	HEADER_MIDDLE     string
+	HEADER_RIGHT      string
+	HEADER            string
+	HEADER_IS_VISIBLE bool
+	IS_VISIBLE        bool
+	style             int
 }
 
 type borderStyle struct {
@@ -43,7 +44,7 @@ const (
 	BORDER_NONE
 )
 
-func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) *borderStyle {
+func NewBorderStyle(outer int, inner int) *borderStyle {
 	style := new(borderStyle)
 
 	style.outer = *new(borderOuter)
@@ -52,9 +53,16 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 
 	style.inner = *new(borderInner)
 	style.inner.IS_VISIBLE = true
+	style.inner.HEADER_IS_VISIBLE = true
 	style.inner.style = inner
 
-	switch outer {
+	style.initBorderStyle()
+
+	return style
+}
+
+func (style *borderStyle) initBorderStyle() *borderStyle {
+	switch style.outer.style {
 	case BORDER_SINGLE_THIN:
 		style.outer.LEFT_TOP = "\u250c"
 		style.outer.LEFT_BOTTOM = "\u2514"
@@ -62,7 +70,7 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 		style.outer.RIGHT_BOTTOM = "\u2518"
 		style.outer.HORISONTAL_LINE = "\u2500"
 		style.outer.VERTICAL_LINE = "\u2502"
-		switch inner {
+		switch style.inner.style {
 		case BORDER_SINGLE_THICK:
 			style.inner.CENTER_TOP = "\u2530"
 			style.inner.CENTER_BOTTOM = "\u2538"
@@ -96,7 +104,7 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 		style.outer.HORISONTAL_LINE = "\u2501"
 		style.outer.VERTICAL_LINE = "\u2503"
 
-		switch inner {
+		switch style.inner.style {
 		case BORDER_SINGLE_THICK:
 			style.inner.CENTER_TOP = "\u2533"
 			style.inner.CENTER_BOTTOM = "\u253b"
@@ -122,7 +130,7 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 		style.outer.HORISONTAL_LINE = "\u2550"
 		style.outer.VERTICAL_LINE = "\u2551"
 
-		switch inner {
+		switch style.inner.style {
 		case BORDER_DOUBLE:
 			style.inner.CENTER_TOP = "\u2566"
 			style.inner.CENTER_BOTTOM = "\u2569"
@@ -157,16 +165,32 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 		style.inner.VERTICAL_LINE = "|"
 	}
 
-	style.outer.IS_VISIBLE = outerVisible
-	style.inner.IS_VISIBLE = innerVisible
+	return style
+}
 
+func (style *borderStyle) SetHeaderVisible(visibility bool) *borderStyle {
+	style.inner.HEADER_IS_VISIBLE = visibility
+	return style
+}
+
+// Set outer border visibility
+func (style *borderStyle) SetBorderVisible(visibility bool) *borderStyle {
+	style.outer.IS_VISIBLE = visibility
 	if !style.outer.IS_VISIBLE {
 		style.outer.LEFT_TOP, style.outer.LEFT_BOTTOM, style.outer.RIGHT_TOP, style.outer.RIGHT_BOTTOM,
 			style.outer.HORISONTAL_LINE, style.outer.VERTICAL_LINE = "", "", "", "", "", ""
 		style.inner.LEFT_MIDDLE, style.inner.RIGHT_MIDDLE, style.inner.CENTER_TOP,
 			style.inner.CENTER_BOTTOM = "", "", "", ""
+	} else {
+		style.initBorderStyle()
 	}
 
+	return style
+}
+
+// Set table grid visibility
+func (style *borderStyle) SetGridVisible(visibility bool) *borderStyle {
+	style.inner.IS_VISIBLE = visibility
 	if !style.inner.IS_VISIBLE {
 		style.inner.CENTER_MIDDLE = ""
 		style.inner.CENTER_BOTTOM = ""
@@ -175,6 +199,9 @@ func NewBorderStyle(outer int, inner int, outerVisible bool, innerVisible bool) 
 		style.inner.HORISONTAL_LINE = ""
 		style.inner.LEFT_MIDDLE = ""
 		style.inner.RIGHT_MIDDLE = ""
+	} else {
+		style.initBorderStyle()
+		style.SetBorderVisible(style.outer.IS_VISIBLE)
 	}
 
 	return style
@@ -211,18 +238,18 @@ func (style *borderStyle) HeaderStyle(header int) *borderStyle {
 		if style.inner.IS_VISIBLE {
 			switch style.inner.style {
 			case BORDER_SINGLE_THIN:
-				style.inner.HEADER = "\u2500"
-				style.inner.HEADER_MIDDLE = "\u253c"
+				style.inner.HEADER = "\u2501"
+				style.inner.HEADER_MIDDLE = "\u253f"
 				switch style.outer.style {
 				case BORDER_SINGLE_THIN:
-					style.inner.HEADER_LEFT = "\u251c"
-					style.inner.HEADER_RIGHT = "\u2524"
+					style.inner.HEADER_LEFT = "\u251d"
+					style.inner.HEADER_RIGHT = "\u2525"
 				case BORDER_SINGLE_THICK:
-					style.inner.HEADER_LEFT = "\u2520"
-					style.inner.HEADER_RIGHT = "\u2528"
+					style.inner.HEADER_LEFT = "\u2523"
+					style.inner.HEADER_RIGHT = "\u252b"
 				case BORDER_DOUBLE:
-					style.inner.HEADER_LEFT = "\u255f"
-					style.inner.HEADER_RIGHT = "\u2562"
+					style.inner.HEADER_LEFT = "\u2560"
+					style.inner.HEADER_RIGHT = "\u2563"
 				}
 			}
 		} else {
