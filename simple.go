@@ -2,6 +2,7 @@ package asciitable
 
 import (
 	"fmt"
+	"github.com/isbm/textwrap"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,7 @@ type simpleTable struct {
 	style       *borderStyle
 	widthTable  int
 	padding     int
+	wrapText    bool
 }
 
 /*
@@ -44,7 +46,14 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table.style = style
 	table.widthTable, _ = GetTerminalSize()
 	table.padding = 0
+	table.wrapText = false
 
+	return table
+}
+
+// SetWrapText wraps text in all cells instead of trimming it to the max width.
+func (table *simpleTable) SetWrapText(wrap bool) *simpleTable {
+	table.wrapText = wrap
 	return table
 }
 
@@ -217,8 +226,61 @@ func (table *simpleTable) renderBorder(borderType int) string {
 	return border
 }
 
-// Takes padded cells data and renders to the row
+// Takes padded cells data and renders to the wrapped row
+func (table *simpleTable) renderRowWrapped(cells []string) string {
+	rowWidths := table.getRowWidths()
+	cellBuff := make([][]string, len(cells))
+
+	maxidx := 0
+	maxrows := 0
+
+	for cidx, cell := range cells {
+		cellBuff[cidx] = textwrap.NewTextWrap().SetWidth(rowWidths[cidx] - (table.padding * 2)).Wrap(cell)
+		if len(cellBuff[cidx]) > maxidx {
+			maxrows = len(cellBuff[cidx])
+			maxidx = cidx
+		}
+	}
+
+	pivoted := make([][]string, maxrows)
+	for colIdx := 0; colIdx < maxrows; colIdx++ {
+		pivotedRow := make([]string, len(rowWidths))
+		for dataIdx, cellData := range cellBuff {
+			if colIdx < len(cellData) {
+				pivotedRow[dataIdx] = strings.TrimSpace(cellData[colIdx])
+			} else {
+				pivotedRow[dataIdx] = ""
+			}
+		}
+		pivoted[colIdx] = pivotedRow
+	}
+
+	var rendered strings.Builder
+	for idx, innerRow := range pivoted {
+		rendered.WriteString(table.renderRowSingle(innerRow))
+		dlen := len(pivoted)
+		if dlen > 1 && idx < dlen-1 {
+			rendered.WriteString("\n")
+		}
+	}
+
+	return rendered.String()
+}
+
+// Render row
 func (table *simpleTable) renderRow(cells []string) string {
+	var result string
+	if table.wrapText {
+		result = table.renderRowWrapped(cells)
+	} else {
+		result = table.renderRowSingle(cells)
+	}
+
+	return result
+}
+
+// Takes padded cells data and renders to the row with trimmed data
+func (table *simpleTable) renderRowSingle(cells []string) string {
 	rowWidths := table.getRowWidths()
 	var row string
 	for idx, cell := range cells {
