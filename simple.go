@@ -204,9 +204,8 @@ func (table *simpleTable) renderBorder(borderType int) string {
 		if table.style.inner.HEADER_IS_VISIBLE || table.style.inner.IS_VISIBLE {
 			if table.style.outer.IS_VISIBLE {
 				border = table.style.inner.HeaderLeft()
-			} else {
-				table.style.inner.Header()
 			}
+
 			for idx, width := range rowWidths {
 				border += strings.Repeat(table.style.inner.Header(), width)
 				if idx < len(rowWidths)-1 {
@@ -215,9 +214,7 @@ func (table *simpleTable) renderBorder(borderType int) string {
 					}
 				} else {
 					if table.style.outer.IS_VISIBLE {
-						border = table.style.inner.HeaderRight()
-					} else {
-						table.style.inner.Header()
+						border += table.style.inner.HeaderRight()
 					}
 				}
 			}
