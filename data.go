@@ -51,3 +51,8 @@ func (tableData *TableData) AddRow(row ...interface{}) *TableData {
 
 	return tableData
 }
+
+// Get raw table data
+func (tableData *TableData) GetData() *[][]string {
+	return &tableData.data
+}
