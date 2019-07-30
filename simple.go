@@ -3,6 +3,7 @@ package asciitable
 import (
 	"fmt"
 	"github.com/isbm/textwrap"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -13,19 +14,22 @@ const (
 	_borderInner
 	_borderBottom
 	_borderHeader
+	_ansiRegex = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
 )
 
 // Table object
 type simpleTable struct {
-	rowsData     *TableData
-	rowsCount    uint64
-	headerAlign  int
-	cellAlign    int
-	style        *borderStyle
-	widthTable   int
-	widthColumns []int
-	padding      int
-	wrapText     bool
+	rowsData       *TableData
+	rowsCount      uint64
+	headerAlign    int
+	cellAlign      int
+	style          *borderStyle
+	widthTable     int
+	widthColumns   []int
+	widthData      int
+	padding        int
+	wrapText       bool
+	stripAnsiRegex *regexp.Regexp
 }
 
 /*
@@ -40,14 +44,17 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table.rowsCount = 0
 	table.headerAlign = ALIGN_LEFT
 	table.cellAlign = ALIGN_LEFT
+
 	if style == nil {
 		style = NewBorderStyle(-1, -1)
 	}
 	table.style = style
+
 	table.widthTable, _ = GetTerminalSize()
 	table.widthColumns = make([]int, 0)
 	table.padding = 0
 	table.wrapText = false
+	table.stripAnsiRegex = regexp.MustCompile(_ansiRegex)
 	table.SetDataMaxWidth()
 
 	return table
@@ -96,6 +103,12 @@ func (table *simpleTable) Data() *TableData {
 	return table.rowsData
 }
 
+// Allow support ANSI-colored data. If the data is not stripped out,
+// all the widths will be wrongly calculated
+func (table *simpleTable) stripAnsi(data string) string {
+	return table.stripAnsiRegex.ReplaceAllString(data, "")
+}
+
 // Sets maximum data width. Used to decide either table is narrower
 // then the terminal or not. Normally should be called after
 // data bulk update, since it is quite expensive.
@@ -131,8 +144,9 @@ func (table *simpleTable) getRowWidths() []int {
 
 	for _, rData := range table.rowsData.data {
 		for idx, data := range rData {
-			if len(data) > widths[idx] {
-				widths[idx] = len(data) + table.padding*2
+			dataLength := len(table.stripAnsi(data))
+			if dataLength > widths[idx] {
+				widths[idx] = dataLength + table.padding*2
 			}
 		}
 	}
@@ -173,7 +187,7 @@ func (table *simpleTable) getRowWidths() []int {
 
 func (table *simpleTable) renderCell(data string, width int, first bool) string {
 	// Trim data, if width is smaller
-	if len(data) > width {
+	if len(table.stripAnsi(data)) > width {
 		data = data[:width-3-(table.padding*2)] + "..."
 	}
 
