@@ -20,7 +20,7 @@ func NewTableData() *TableData {
 
 func (tableData *TableData) SetData(data [][]interface{}) *TableData {
 	if len(data) < 1 && len(data[0]) < 1 {
-		panic("ERROR: Data shuld to be two-dimentional array with at least one row, containing at least one element.")
+		panic("ERROR: Data should to be two-dimentional array with at least one row, containing at least one element.")
 	}
 
 	for _, row := range data {
