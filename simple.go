@@ -48,6 +48,7 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table.widthColumns = make([]int, 0)
 	table.padding = 0
 	table.wrapText = false
+	table.SetDataMaxWidth()
 
 	return table
 }
@@ -93,6 +94,25 @@ func (table *simpleTable) SetColWidth(column int, width int) *simpleTable {
 // Returns table data
 func (table *simpleTable) Data() *TableData {
 	return table.rowsData
+}
+
+// Sets maximum data width. Used to decide either table is narrower
+// then the terminal or not. Normally should be called after
+// data bulk update, since it is quite expensive.
+func (table *simpleTable) SetDataMaxWidth() int {
+	width := 0
+	for _, row := range *table.Data().GetData() {
+		rowWidth := 0
+		for _, cell := range row {
+			rowWidth += len(table.stripAnsi(cell))
+		}
+		if rowWidth > width {
+			width = rowWidth
+		}
+	}
+	table.widthData = width
+
+	return table.widthData
 }
 
 // Calculate row widths for maximum widest data
