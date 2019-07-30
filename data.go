@@ -7,7 +7,8 @@ import (
 )
 
 type TableData struct {
-	data [][]string
+	header []string
+	data   [][]string
 }
 
 /*
@@ -58,4 +59,20 @@ func (tableData *TableData) AddRow(row ...interface{}) *TableData {
 // Get raw table data
 func (tableData *TableData) GetData() *[][]string {
 	return &tableData.data
+}
+
+// Get table header data
+func (tableData *TableData) GetHeader() *[]string {
+	return &tableData.header
+}
+
+/*
+Set Header of the table. Each string represents a column name.
+Previous data is wept away.
+*/
+func (tableData *TableData) SetHeader(titles ...string) *TableData {
+	tableData.header = make([]string, len(titles))
+	copy(tableData.header, titles)
+
+	return tableData
 }

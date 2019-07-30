@@ -17,7 +17,6 @@ const (
 
 // Table object
 type simpleTable struct {
-	header       []string
 	rowsData     *TableData
 	rowsCount    uint64
 	headerAlign  int
@@ -91,17 +90,6 @@ func (table *simpleTable) SetColWidth(column int, width int) *simpleTable {
 	return table
 }
 
-/*
-Set Header of the table. Each string represents a column name.
-Previous data is wept away.
-*/
-func (table *simpleTable) Header(titles ...string) *simpleTable {
-	table.header = make([]string, len(titles))
-	copy(table.header, titles)
-
-	return table
-}
-
 // Returns table data
 func (table *simpleTable) Data() *TableData {
 	return table.rowsData
@@ -109,14 +97,15 @@ func (table *simpleTable) Data() *TableData {
 
 // Calculate row widths for maximum widest data
 func (table *simpleTable) getRowWidths() []int {
-	widths := make([]int, len(table.header))
+	widths := make([]int, len(*table.Data().GetHeader()))
 	for idx := range widths {
 		widths[idx] = 0
 	}
 
-	for idx, title := range table.header {
-		if len(title) > widths[idx] {
-			widths[idx] = len(title) + table.padding*2
+	for idx, title := range *table.Data().GetHeader() {
+		titleLength := len(table.stripAnsi(title))
+		if titleLength > widths[idx] {
+			widths[idx] = titleLength + table.padding*2
 		}
 	}
 
@@ -322,10 +311,10 @@ func (table *simpleTable) renderRowSingle(cells []string) string {
 func (table *simpleTable) Render() string {
 	render := make([]string, 0)
 
-	if len(table.header) > 0 {
+	if len(*table.Data().GetHeader()) > 0 {
 		render = append(render, []string{
 			table.renderBorder(_borderTop),
-			table.renderRow(table.header),
+			table.renderRow(*table.Data().GetHeader()),
 			table.renderBorder(_borderHeader),
 		}...)
 	}
