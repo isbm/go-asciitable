@@ -17,15 +17,16 @@ const (
 
 // Table object
 type simpleTable struct {
-	header      []string
-	rowsData    *TableData
-	rowsCount   uint64
-	headerAlign int
-	cellAlign   int
-	style       *borderStyle
-	widthTable  int
-	padding     int
-	wrapText    bool
+	header       []string
+	rowsData     *TableData
+	rowsCount    uint64
+	headerAlign  int
+	cellAlign    int
+	style        *borderStyle
+	widthTable   int
+	widthColumns []int
+	padding      int
+	wrapText     bool
 }
 
 /*
@@ -45,6 +46,7 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	}
 	table.style = style
 	table.widthTable, _ = GetTerminalSize()
+	table.widthColumns = make([]int, 0)
 	table.padding = 0
 	table.wrapText = false
 
@@ -75,6 +77,17 @@ func (table *simpleTable) SetWidth(width int) *simpleTable {
 Set column width (chars)
 */
 func (table *simpleTable) SetColWidth(column int, width int) *simpleTable {
+	rowWidths := table.getRowWidths()
+	if len(rowWidths) == 0 {
+		panic("Attempt to set columns while no header or data has been set")
+	}
+
+	if len(table.widthColumns) == 0 {
+		table.widthColumns = append(table.widthColumns, rowWidths...)
+	}
+
+	table.widthColumns[column] = width
+
 	return table
 }
 
@@ -89,6 +102,7 @@ func (table *simpleTable) Header(titles ...string) *simpleTable {
 	return table
 }
 
+// Returns table data
 func (table *simpleTable) Data() *TableData {
 	return table.rowsData
 }
@@ -114,25 +128,35 @@ func (table *simpleTable) getRowWidths() []int {
 		}
 	}
 
-	// Adjust the last column accordingly
-	sum := 0
-	for _, width := range widths {
-		sum += width
+	// Override custom widths
+	lastColumnFree := true
+	if len(table.widthColumns) == len(widths) {
+		lastColumnFree = widths[len(widths)-1] == table.widthColumns[len(widths)-1]
+		copy(widths, table.widthColumns)
 	}
-	if sum < table.widthTable {
-		var offset int
-		if table.style.outer.IS_VISIBLE {
-			offset = 4
+
+	if lastColumnFree {
+		// Adjust the last column accordingly to the table width,
+		// but only if it was not explicitly specified already
+		sum := 0
+		for _, width := range widths {
+			sum += width
+		}
+		if sum < table.widthTable {
+			var offset int
+			if table.style.outer.IS_VISIBLE {
+				offset = 4
+			} else {
+				offset = 2
+			}
+			widths[len(widths)-1] = widths[len(widths)-1] + table.widthTable - sum - offset
 		} else {
-			offset = 2
+			lastColWidth := table.widthTable - (sum - widths[len(widths)-1])
+			if lastColWidth < 4 {
+				lastColWidth = 4 + table.padding*2
+			}
+			widths[len(widths)-1] = lastColWidth
 		}
-		widths[len(widths)-1] = widths[len(widths)-1] + table.widthTable - sum - offset
-	} else {
-		lastColWidth := table.widthTable - (sum - widths[len(widths)-1])
-		if lastColWidth < 4 {
-			lastColWidth = 4 + table.padding*2
-		}
-		widths[len(widths)-1] = lastColWidth
 	}
 
 	return widths
