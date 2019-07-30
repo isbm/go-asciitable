@@ -3,6 +3,7 @@ package asciitable
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 type TableData struct {
@@ -39,6 +40,8 @@ func (tableData *TableData) AddRow(row ...interface{}) *TableData {
 			cellData = fmt.Sprintf("%d", rowData)
 		case reflect.Slice, reflect.Array, reflect.Map:
 			cellData = fmt.Sprintf("*### Error: %s ###*", reflect.TypeOf(rowData))
+		case reflect.String:
+			cellData = strings.TrimSpace(rowData.(string))
 		default:
 			cellData = fmt.Sprintf("%v", rowData)
 		}
