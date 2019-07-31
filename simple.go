@@ -143,22 +143,22 @@ func (table *simpleTable) setDataMaxWidth() int {
 }
 
 // Calculate row widths for maximum widest data
+// XXX: Should be able to cache the results and do not re-calculate it from scratch for each row and element!!
 func (table *simpleTable) getRowWidths() []int {
-	*/
 	widths := make([]int, len(*table.Data().GetHeader()))
 
 	for idx, title := range *table.Data().GetHeader() {
-		titleLength := len(table.stripAnsi(title))
-		if titleLength > widths[idx] {
-			widths[idx] = titleLength + table.padding*2
+		titleLength := len(table.stripAnsi(title)) + table.padding*2
+		if titleLength >= widths[idx] {
+			widths[idx] = titleLength
 		}
 	}
 
-	for _, rData := range table.rowsData.data {
-		for idx, data := range rData {
-			dataLength := len(table.stripAnsi(data))
+	for _, rowData := range *table.Data().GetData() {
+		for idx, data := range rowData {
+			dataLength := len(table.stripAnsi(data)) + table.padding*2
 			if dataLength > widths[idx] {
-				widths[idx] = dataLength + table.padding*2
+				widths[idx] = dataLength
 			}
 		}
 	}
@@ -174,28 +174,41 @@ func (table *simpleTable) getRowWidths() []int {
 	}
 
 	// Set expand table if it is set explicitly or data is bigger than the table
-	if table.style.widthFull || table.widthTable > table.widthData {
-		// Adjust the last column accordingly to the table width,
-		// but only if it was not explicitly specified already
-		sum := 0
-		for _, width := range widths {
-			sum += width
-		}
-		if sum < table.widthTable {
-			var offset int
-			if table.style.outer.IS_VISIBLE {
-				offset = 4
+	if table.widthTable > table.widthData || len(table.widthColumns) > 0 {
+		if table.style.widthFull {
+			// Adjust the last column accordingly to the table width,
+			// but only if it was not explicitly specified already
+			sum := 0
+			for _, width := range widths {
+				sum += width
+			}
+			if sum < table.widthTable {
+				var offset int
+				if table.style.outer.IS_VISIBLE {
+					offset = 4
+				} else {
+					offset = 2
+				}
+				widths[len(widths)-1] = widths[len(widths)-1] + table.widthTable - sum - offset - 2
 			} else {
-				offset = 2
+				lastColWidth := table.widthTable - (sum - widths[len(widths)-1]) - 3
+				if lastColWidth < 4 {
+					lastColWidth = 4 + table.padding*2
+				}
+				widths[len(widths)-1] = lastColWidth
 			}
-			widths[len(widths)-1] = widths[len(widths)-1] + table.widthTable - sum - offset - 2
-		} else {
-			lastColWidth := table.widthTable - (sum - widths[len(widths)-1]) - 3
-			if lastColWidth < 4 {
-				lastColWidth = 4 + table.padding*2
-			}
-			widths[len(widths)-1] = lastColWidth
 		}
+	} else {
+		defaultWidth := table.widthTable/table.Data().GetColsNum() - 1
+		for idx := range widths {
+			widths[idx] = defaultWidth
+		}
+		// set last column width
+		lastColumnWidth := (table.widthTable - (defaultWidth * (table.Data().GetColsNum() - 1))) - table.Data().GetColsNum() + 1
+		if table.style.outer.IS_VISIBLE {
+			lastColumnWidth -= 2
+		}
+		widths[len(widths)-1] = lastColumnWidth
 	}
 
 	return widths
