@@ -55,7 +55,6 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table.padding = 0
 	table.wrapText = false
 	table.stripAnsiRegex = regexp.MustCompile(_ansiRegex)
-	table.SetDataMaxWidth()
 
 	return table
 }
@@ -112,7 +111,7 @@ func (table *simpleTable) stripAnsi(data string) string {
 // Sets maximum data width. Used to decide either table is narrower
 // then the terminal or not. Normally should be called after
 // data bulk update, since it is quite expensive.
-func (table *simpleTable) SetDataMaxWidth() int {
+func (table *simpleTable) setDataMaxWidth() int {
 	width := 0
 	for _, row := range *table.Data().GetData() {
 		rowWidth := 0
@@ -130,10 +129,8 @@ func (table *simpleTable) SetDataMaxWidth() int {
 
 // Calculate row widths for maximum widest data
 func (table *simpleTable) getRowWidths() []int {
+	*/
 	widths := make([]int, len(*table.Data().GetHeader()))
-	for idx := range widths {
-		widths[idx] = 0
-	}
 
 	for idx, title := range *table.Data().GetHeader() {
 		titleLength := len(table.stripAnsi(title))
@@ -343,6 +340,7 @@ func (table *simpleTable) renderRowSingle(cells []string) string {
 
 // Renders table as a string
 func (table *simpleTable) Render() string {
+	table.setDataMaxWidth()
 	render := make([]string, 0)
 
 	if len(*table.Data().GetHeader()) > 0 {
