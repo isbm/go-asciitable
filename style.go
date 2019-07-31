@@ -29,8 +29,9 @@ type borderInner struct {
 }
 
 type borderStyle struct {
-	inner borderInner
-	outer borderOuter
+	inner     borderInner
+	outer     borderOuter
+	widthFull bool
 }
 
 // Configuration of the table.
@@ -55,9 +56,18 @@ func NewBorderStyle(outer int, inner int) *borderStyle {
 	style.inner.IS_VISIBLE = true
 	style.inner.HEADER_IS_VISIBLE = true
 	style.inner.style = inner
+	style.widthFull = false
 
 	style.initBorderStyle()
 
+	return style
+}
+
+// Set table to be full width aligned to the terminal size.
+// If this is set to False, then table will be calculated according to the
+// data cells, if they are narrower than the terminal size.
+func (style *borderStyle) SetTableWidthFull(full bool) *borderStyle {
+	style.widthFull = full
 	return style
 }
 
