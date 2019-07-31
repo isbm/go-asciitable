@@ -353,14 +353,14 @@ func (table *simpleTable) Render() string {
 		}...)
 	}
 
-	for _, row := range table.rowsData.data[:len(table.rowsData.data)-1] {
+	for _, row := range (*table.Data().GetData())[:len(*table.Data().GetData())-1] {
 		render = append(render, []string{
 			table.renderRow(row),
 			table.renderBorder(_borderInner),
 		}...)
 	}
 	render = append(render, []string{
-		table.renderRow(table.rowsData.data[len(table.rowsData.data)-1]),
+		table.renderRow((*table.Data().GetData())[len(*table.Data().GetData())-1]),
 		table.renderBorder(_borderBottom),
 	}...)
 
