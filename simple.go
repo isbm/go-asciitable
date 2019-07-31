@@ -80,20 +80,33 @@ func (table *simpleTable) SetWidth(width int) *simpleTable {
 }
 
 /*
-Set column width (chars)
+Set column width (chars). If columns contains only one value and it is -1,
+then width applies to all columns at once.
 */
-func (table *simpleTable) SetColWidth(column int, width int) *simpleTable {
+func (table *simpleTable) SetColWidth(width int, columns ...int) *simpleTable {
 	colsNum := table.Data().GetColsNum()
 	if colsNum == 0 {
-		panic("Attempt to set columns while no header or data has been set")
+		panic("An attempt to set columns while no header or data has been set")
 	} else if len(table.widthColumns) == 0 {
 		table.widthColumns = make([]int, colsNum)
+	} else if len(columns) != colsNum {
+		panic("An attempt to set more columns widths than actually in the table")
 	}
 
-	if column < colsNum {
-		table.widthColumns[column] = width
+	// Set width to all cells
+	if len(columns) == 1 && columns[0] == -1 {
+		for idx, _ := range table.widthColumns {
+			table.widthColumns[idx] = width
+		}
 	} else {
-		panic("Attempt to set width of a column that does not exist")
+		// Set only specific cells
+		for _, column := range columns {
+			if column < colsNum {
+				table.widthColumns[column] = width
+			} else {
+				panic("Attempt to set width of a column that does not exist")
+			}
+		}
 	}
 
 	return table
