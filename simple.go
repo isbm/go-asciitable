@@ -151,13 +151,17 @@ func (table *simpleTable) getRowWidths() []int {
 	}
 
 	// Override custom widths
-	lastColumnFree := true
 	if len(table.widthColumns) == len(widths) {
-		lastColumnFree = widths[len(widths)-1] == table.widthColumns[len(widths)-1]
-		copy(widths, table.widthColumns)
+		// If col width is != 0, then it is specified
+		for idx, colWidth := range table.widthColumns {
+			if colWidth > 0 {
+				widths[idx] = colWidth
+			}
+		}
 	}
 
-	if lastColumnFree {
+	// Set expand table if it is set explicitly or data is bigger than the table
+	if table.style.widthFull || table.widthTable > table.widthData {
 		// Adjust the last column accordingly to the table width,
 		// but only if it was not explicitly specified already
 		sum := 0
