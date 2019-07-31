@@ -208,7 +208,7 @@ func (style *borderStyle) SetGridVisible(visibility bool) *borderStyle {
 }
 
 // Set header style. This will draw a specified style line under the header.
-func (style *borderStyle) HeaderStyle(header int) *borderStyle {
+func (style *borderStyle) SetHeaderStyle(header int) *borderStyle {
 	switch header {
 	case BORDER_SINGLE_THIN:
 		if style.inner.IS_VISIBLE {
