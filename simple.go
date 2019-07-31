@@ -267,19 +267,16 @@ func (table *simpleTable) renderBorder(borderType int) string {
 	return border
 }
 
-// Takes padded cells data and renders to the wrapped row
-func (table *simpleTable) renderRowWrapped(cells []string) string {
+// Pivot data vertically to columns.
+func (table *simpleTable) pivotData(data []string) [][]string {
 	rowWidths := table.getRowWidths()
-	cellBuff := make([][]string, len(cells))
-
-	maxidx := 0
+	cellBuff := make([][]string, len(data))
 	maxrows := 0
 
-	for cidx, cell := range cells {
+	for cidx, cell := range data {
 		cellBuff[cidx] = textwrap.NewTextWrap().SetWidth(rowWidths[cidx] - (table.padding * 2)).Wrap(cell)
-		if len(cellBuff[cidx]) > maxidx {
+		if len(cellBuff[cidx]) > maxrows {
 			maxrows = len(cellBuff[cidx])
-			maxidx = cidx
 		}
 	}
 
@@ -295,8 +292,13 @@ func (table *simpleTable) renderRowWrapped(cells []string) string {
 		}
 		pivoted[colIdx] = pivotedRow
 	}
+	return pivoted
+}
 
+// Takes padded cells data and renders to the wrapped row
+func (table *simpleTable) renderRowWrapped(cells []string) string {
 	var rendered strings.Builder
+	pivoted := table.pivotData(cells)
 	for idx, innerRow := range pivoted {
 		rendered.WriteString(table.renderRowSingle(innerRow))
 		dlen := len(pivoted)
