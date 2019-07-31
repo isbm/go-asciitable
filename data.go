@@ -66,6 +66,20 @@ func (tableData *TableData) GetHeader() *[]string {
 	return &tableData.header
 }
 
+// Get number of columns in the table
+func (tableData *TableData) GetColsNum() int {
+	cols := 0
+	if tableData.GetRowsNum() > 0 {
+		cols = len(tableData.data[0])
+	}
+	return cols
+}
+
+// Get number of rows in the table
+func (tableData *TableData) GetRowsNum() int {
+	return len(tableData.data)
+}
+
 /*
 Set Header of the table. Each string represents a column name.
 Previous data is wept away.
