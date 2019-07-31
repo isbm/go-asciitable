@@ -83,16 +83,18 @@ func (table *simpleTable) SetWidth(width int) *simpleTable {
 Set column width (chars)
 */
 func (table *simpleTable) SetColWidth(column int, width int) *simpleTable {
-	rowWidths := table.getRowWidths()
-	if len(rowWidths) == 0 {
+	colsNum := table.Data().GetColsNum()
+	if colsNum == 0 {
 		panic("Attempt to set columns while no header or data has been set")
+	} else if len(table.widthColumns) == 0 {
+		table.widthColumns = make([]int, colsNum)
 	}
 
-	if len(table.widthColumns) == 0 {
-		table.widthColumns = append(table.widthColumns, rowWidths...)
+	if column < colsNum {
+		table.widthColumns[column] = width
+	} else {
+		panic("Attempt to set width of a column that does not exist")
 	}
-
-	table.widthColumns[column] = width
 
 	return table
 }
