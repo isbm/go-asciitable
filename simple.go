@@ -1,10 +1,8 @@
 package asciitable
 
 import (
-	"fmt"
 	"github.com/isbm/textwrap"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -19,17 +17,18 @@ const (
 
 // Table object
 type simpleTable struct {
-	rowsData       *TableData
-	rowsCount      uint64
-	headerAlign    int
-	cellAlign      int
-	style          *borderStyle
-	widthTable     int
-	widthColumns   []int
-	widthData      int
-	padding        int
-	wrapText       bool
-	stripAnsiRegex *regexp.Regexp
+	rowsData        *TableData
+	rowsCount       uint64
+	headerAlign     int
+	columnsAlign    []int
+	columnsTextWrap []bool
+	style           *borderStyle
+	widthTable      int
+	widthColumns    []int
+	widthData       int
+	padding         int
+	wrapText        bool
+	stripAnsiRegex  *regexp.Regexp
 }
 
 /*
@@ -43,8 +42,16 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 	table.rowsData = data
 	table.rowsCount = 0
 	table.headerAlign = ALIGN_LEFT
-	table.cellAlign = ALIGN_LEFT
 
+	// Set default column align and nowrap
+	table.columnsAlign = make([]int, data.GetColsNum())
+	table.columnsTextWrap = make([]bool, len(table.columnsAlign))
+	for idx := range table.columnsAlign {
+		table.columnsAlign[idx] = ALIGN_LEFT
+		table.columnsTextWrap[idx] = true
+	}
+
+	// Set style
 	if style == nil {
 		style = NewBorderStyle(-1, -1)
 	}
@@ -103,6 +110,42 @@ func (table *simpleTable) SetColWidth(width int, columns ...int) *simpleTable {
 		for _, column := range columns {
 			if column < colsNum {
 				table.widthColumns[column] = width
+			} else {
+				panic("Attempt to set width of a column that does not exist")
+			}
+		}
+	}
+
+	return table
+}
+
+
+// Set column align
+func (table *simpleTable) SetColAlign(align int, columns ...int) *simpleTable {
+	if align != ALIGN_LEFT && align != ALIGN_RIGHT && align != ALIGN_CENTER {
+		panic("An attempt to set an unknown align")
+	}
+
+	colsNum := table.Data().GetColsNum()
+
+	if colsNum == 0 {
+		panic("An attempt to set column align while no header or data has been set")
+	} else if len(table.widthColumns) == 0 {
+		table.widthColumns = make([]int, colsNum)
+	} else if len(columns) > colsNum {
+		panic("An attempt to set more column align than actually in the table")
+	}
+
+	// Set align to all cells
+	if len(columns) == 1 && columns[0] == -1 {
+		for idx := range table.columnsAlign {
+			table.columnsAlign[idx] = align
+		}
+	} else {
+		// Set only specific cells
+		for _, column := range columns {
+			if column < colsNum {
+				table.columnsAlign[column] = align
 			} else {
 				panic("Attempt to set width of a column that does not exist")
 			}
@@ -214,26 +257,33 @@ func (table *simpleTable) getRowWidths() []int {
 	return widths
 }
 
-func (table *simpleTable) renderCell(data string, width int, first bool) string {
+// Support ANSI escape
+func (table *simpleTable) align(data string, width int, direction int) string {
+	strippedDataLen := len(table.stripAnsi(data))
+	pad := width - strippedDataLen
+	switch direction {
+	case ALIGN_RIGHT:
+		data = strings.Repeat(" ", pad) + data
+	case ALIGN_CENTER:
+		data = strings.Repeat(" ", pad/2) + data + strings.Repeat(" ", pad/2)
+	default:
+		data = data + strings.Repeat(" ", pad)
+	}
+
+	if len(data) != strippedDataLen {
+		data += "\u001b[0m"
+	}
+
+	return data
+}
+
+func (table *simpleTable) renderCell(data string, width int, first bool, align int) string {
 	// Trim data, if width is smaller
 	if len(table.stripAnsi(data)) > width {
 		data = data[:width-3-(table.padding*2)] + "..."
 	}
 
-	// Set padding
-	data = strings.Repeat(" ", table.padding) + data + strings.Repeat(" ", table.padding)
-
-	w := strconv.Itoa(width)
-	var cell string
-	switch table.headerAlign {
-	case ALIGN_RIGHT:
-		cell = fmt.Sprintf("%"+w+"s", data)
-	case ALIGN_CENTER:
-		cell = fmt.Sprintf("%-"+w+"s", fmt.Sprintf("%"+w+"s", data))
-	default:
-		cell = fmt.Sprintf("%-"+w+"s", data)
-	}
-	return cell
+	return table.align(strings.Repeat(" ", table.padding)+data+strings.Repeat(" ", table.padding), width, align)
 }
 
 /*
