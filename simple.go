@@ -96,13 +96,13 @@ func (table *simpleTable) SetColWidth(width int, columns ...int) *simpleTable {
 		panic("An attempt to set columns while no header or data has been set")
 	} else if len(table.widthColumns) == 0 {
 		table.widthColumns = make([]int, colsNum)
-	} else if len(columns) != colsNum {
+	} else if len(columns) > colsNum {
 		panic("An attempt to set more columns widths than actually in the table")
 	}
 
 	// Set width to all cells
 	if len(columns) == 1 && columns[0] == -1 {
-		for idx, _ := range table.widthColumns {
+		for idx := range table.widthColumns {
 			table.widthColumns[idx] = width
 		}
 	} else {
@@ -119,6 +119,28 @@ func (table *simpleTable) SetColWidth(width int, columns ...int) *simpleTable {
 	return table
 }
 
+// Set column text wrap
+func (table *simpleTable) SetColTextWrap(wrap bool, columns ...int) *simpleTable {
+	colsNum := table.Data().GetColsNum()
+
+	// Set wrapping to all columns
+	if len(columns) == 1 && columns[0] == -1 {
+		for idx := range table.columnsTextWrap {
+			table.columnsTextWrap[idx] = wrap
+		}
+	} else {
+		// Set only specific columns
+		for _, column := range columns {
+			if column < colsNum {
+				table.columnsTextWrap[column] = wrap
+			} else {
+				panic("Attempt to set text wrapping attribute to a column that does not exist")
+			}
+		}
+	}
+
+	return table
+}
 
 // Set column align
 func (table *simpleTable) SetColAlign(align int, columns ...int) *simpleTable {
@@ -356,7 +378,11 @@ func (table *simpleTable) pivotData(data []string) [][]string {
 	maxrows := 0
 
 	for cidx, cell := range data {
-		cellBuff[cidx] = textwrap.NewTextWrap().SetWidth(rowWidths[cidx] - (table.padding * 2)).Wrap(cell)
+		if table.columnsTextWrap[cidx] {
+			cellBuff[cidx] = textwrap.NewTextWrap().SetWidth(rowWidths[cidx] - (table.padding * 2)).Wrap(cell)
+		} else {
+			cellBuff[cidx] = []string{cell}
+		}
 		if len(cellBuff[cidx]) > maxrows {
 			maxrows = len(cellBuff[cidx])
 		}
@@ -412,7 +438,7 @@ func (table *simpleTable) renderRowSingle(cells []string) string {
 		if idx < 1 {
 			row += table.style.outer.VerticalLine()
 		}
-		row += table.renderCell(cell, rowWidths[idx], idx == 0)
+		row += table.renderCell(cell, rowWidths[idx], idx == 0, table.columnsAlign[idx])
 		if idx < len(cells)-1 {
 			row += table.style.inner.VerticalLine()
 		} else {
