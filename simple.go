@@ -67,7 +67,7 @@ func NewSimpleTable(data *TableData, style *borderStyle) *simpleTable {
 }
 
 // SetWrapText wraps text in all cells instead of trimming it to the max width.
-func (table *simpleTable) SetWrapText(wrap bool) *simpleTable {
+func (table *simpleTable) SetTextWrap(wrap bool) *simpleTable {
 	table.wrapText = wrap
 	return table
 }
