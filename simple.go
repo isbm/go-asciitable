@@ -371,6 +371,20 @@ func (table *simpleTable) renderBorder(borderType int) string {
 	return border
 }
 
+// Support ANSI text attributes when wrapping data.
+func (table *simpleTable) wrapCellData(data string, width int) []string {
+	plainData := table.stripAnsi(data)
+	plainDataLen := len(plainData)
+	var content []string
+	if plainDataLen > width {
+		content = textwrap.NewTextWrap().SetWidth(width).Wrap(plainData)
+	} else {
+		content = []string{data}
+	}
+
+	return content
+}
+
 // Pivot data vertically to columns.
 func (table *simpleTable) pivotData(data []string) [][]string {
 	rowWidths := table.getRowWidths()
@@ -379,7 +393,7 @@ func (table *simpleTable) pivotData(data []string) [][]string {
 
 	for cidx, cell := range data {
 		if table.columnsTextWrap[cidx] {
-			cellBuff[cidx] = textwrap.NewTextWrap().SetWidth(rowWidths[cidx] - (table.padding * 2)).Wrap(cell)
+			cellBuff[cidx] = table.wrapCellData(cell, rowWidths[cidx]-(table.padding*2))
 		} else {
 			cellBuff[cidx] = []string{cell}
 		}
